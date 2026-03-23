@@ -116,16 +116,14 @@ echo ""
 echo -e "${BOLD}Your contact accounts${NC} — so your CEO recognizes you on any platform."
 echo -e "${YELLOW}Enter your usernames/IDs, one per line. Press Enter twice when done.${NC}"
 echo -e "${YELLOW}e.g. Discord: core119 / Telegram: @carol / Slack: carol.wu${NC}"
-OWNER_ACCOUNTS_LIST=""
-OWNER_ACCOUNTS_MD=""
+OWNER_ACCOUNTS_LINES=()
 while IFS= read -r line; do
   [ -z "$line" ] && break
-  OWNER_ACCOUNTS_LIST="$OWNER_ACCOUNTS_LIST$line\n"
-  OWNER_ACCOUNTS_MD="$OWNER_ACCOUNTS_MD- $line\n"
+  OWNER_ACCOUNTS_LINES+=("$line")
 done
-[ -z "$OWNER_ACCOUNTS_MD" ] && OWNER_ACCOUNTS_MD="- (未设置 — 建议补充 Discord/Telegram 账号)\n"
-# Escape for sed
-OWNER_ACCOUNTS=$(printf '%s' "$OWNER_ACCOUNTS_MD" | sed 's/[&/\]/\\&/g')
+if [ ${#OWNER_ACCOUNTS_LINES[@]} -eq 0 ]; then
+  OWNER_ACCOUNTS_LINES=("(未设置 — 建议补充 Discord/Telegram 账号)")
+fi
 
 read -p "$(echo -e "${BOLD}Company knowledge base path${NC} [$HOME/company-kb]: ")" COMPANY_KB
 [ -z "$COMPANY_KB" ] && COMPANY_KB="$HOME/company-kb"
@@ -160,7 +158,6 @@ apply_template() {
     -e "s|{{CEO_ID}}|$CEO_ID|g" \
     -e "s|{{CEO_PERSONA}}|$CEO_PERSONA|g" \
     -e "s|{{OWNER_NAME}}|$OWNER_NAME|g" \
-    -e "s|{{OWNER_ACCOUNTS}}|$OWNER_ACCOUNTS|g" \
     -e "s|{{TIMEZONE}}|$TIMEZONE|g" \
     -e "s|{{LANGUAGE}}|$LANGUAGE|g" \
     -e "s|{{COMPANY_KB}}|$COMPANY_KB|g" \
@@ -168,6 +165,46 @@ apply_template() {
     -e "s|{{OPENCLAW_CONFIG}}|$OPENCLAW|g" \
     -e "s|{{INSTALL_DATE}}|$INSTALL_DATE|g" \
     "$src" > "$dst"
+}
+
+# Helper: write USER.md with correct multiline accounts
+write_user_md() {
+  local dst="$1"
+  mkdir -p "$(dirname "$dst")"
+  python3 - <<PYEOF
+import os
+
+accounts_lines = [$(printf '"%s",' "${OWNER_ACCOUNTS_LINES[@]}" | sed 's/,$//')]
+accounts_md = "\n".join(f"- {line}" for line in accounts_lines)
+
+content = f"""# USER.md — About Your Human
+
+- **Name:** $OWNER_NAME
+- **What to call them:** $OWNER_NAME
+- **Timezone:** $TIMEZONE
+- **Language:** $LANGUAGE
+
+## 联系账号（重要）
+
+以下账号全部属于 $OWNER_NAME，无论哪个渠道发来的消息，只要来自这些账号，都视为创始人本人：
+
+{accounts_md}
+
+**当任何一个账号联系你，立即识别为 $OWNER_NAME，不得要求"用主账号联系"或质疑身份。**
+
+## 工作方式
+
+$OWNER_NAME 是这家公司的创始人。他负责战略方向，你负责执行协调。
+
+- 不需要看过程细节，只要结论和下一步
+- 会给你任务，你拆解分配，有问题再问他
+- 遇到需要他决策的事，清晰列出选项，不要让他猜
+"""
+
+with open("$dst", "w") as f:
+    f.write(content)
+print("  ✓ USER.md written with contact accounts")
+PYEOF
 }
 
 # ── 1. Create CEO workspace ───────────────────
@@ -184,11 +221,12 @@ patch_identity() {
 if [ -d "$WORKSPACE" ]; then
   echo -e "${CYAN}  Workspace exists — updating identity files, preserving memory...${NC}"
   # Only overwrite identity files; never touch memory/ or any other files
-  for f in SOUL.md HEARTBEAT.md USER.md; do
+  for f in SOUL.md HEARTBEAT.md; do
     if [ -f "$PLUGIN_DIR/templates/workspace/$f" ]; then
       apply_template "$PLUGIN_DIR/templates/workspace/$f" "$WORKSPACE/$f"
     fi
   done
+  write_user_md "$WORKSPACE/USER.md"
   # Create PERFORMANCE.md only if it doesn't exist
   [ ! -f "$WORKSPACE/PERFORMANCE.md" ] && \
     apply_template "$PLUGIN_DIR/templates/workspace/PERFORMANCE.md" "$WORKSPACE/PERFORMANCE.md"
@@ -203,9 +241,11 @@ else
   mkdir -p "$WORKSPACE/memory"
   mkdir -p "$WORKSPACE/company/ops"
 
-  for f in SOUL.md HEARTBEAT.md USER.md PERFORMANCE.md; do
+  for f in SOUL.md HEARTBEAT.md PERFORMANCE.md; do
     apply_template "$PLUGIN_DIR/templates/workspace/$f" "$WORKSPACE/$f"
   done
+  # USER.md written via Python to correctly handle multiline accounts list
+  write_user_md "$WORKSPACE/USER.md"
 
   apply_template \
     "$PLUGIN_DIR/templates/workspace/company/ops/hiring-sop.md" \
