@@ -55,30 +55,43 @@ if [ -n "$EXISTING" ]; then
     echo "Aborted."
     exit 0
   fi
-  # Remove existing main agents before reinstalling
+  # Remove ALL plugin-installed agents and their bindings/cron jobs
   python3 - <<PYEOF
 import json
+
 config_path = "$OPENCLAW/openclaw.json"
 with open(config_path) as f:
     config = json.load(f)
-config['agents']['list'] = [a for a in config.get('agents',{}).get('list',[]) if not a.get('main')]
+
+old_ids = [a['id'] for a in config.get('agents',{}).get('list',[])
+           if a.get('workspace','').startswith('$OPENCLAW/workspace-')
+           and a.get('id') not in ('main',)]
+
+# Remove agents
+config['agents']['list'] = [a for a in config['agents']['list']
+                             if a.get('id') not in old_ids]
+
+# Remove their bindings
+config['bindings'] = [b for b in config.get('bindings', [])
+                      if b.get('agentId') not in old_ids]
+
 with open(config_path, 'w') as f:
     json.dump(config, f, indent=2, ensure_ascii=False)
-print("  ✓ Removed existing CEO agents")
+print(f"  \u2713 Removed {len(old_ids)} existing CEO agent(s) and their bindings")
+
+# Remove cron jobs
+import os
+cron_path = "$OPENCLAW/cron/jobs.json"
+if os.path.exists(cron_path):
+    with open(cron_path) as f:
+        cron = json.load(f)
+    removed = [j['agentId'] for j in cron.get('jobs',[]) if j.get('agentId') in old_ids]
+    cron['jobs'] = [j for j in cron['jobs'] if j.get('agentId') not in old_ids]
+    with open(cron_path, 'w') as f:
+        json.dump(cron, f, indent=2, ensure_ascii=False)
+    for rid in removed:
+        print(f"  \u2713 Removed cron job for {rid}")
 PYEOF
-  # Remove existing cron jobs for old main agents
-  CRON_FILE="$OPENCLAW/cron/jobs.json"
-  if [ -f "$CRON_FILE" ]; then
-    IFS=',' read -ra OLD_IDS <<< "$EXISTING"
-    for OLD_ID in "${OLD_IDS[@]}"; do
-      python3 -c "
-import json
-with open('$CRON_FILE') as f: data=json.load(f)
-data['jobs']=[j for j in data.get('jobs',[]) if j.get('agentId')!='$OLD_ID']
-with open('$CRON_FILE','w') as f: json.dump(data,f,indent=2)
-" 2>/dev/null && echo "  ✓ Removed cron job for $OLD_ID"
-    done
-  fi
   echo ""
 fi
 
