@@ -80,7 +80,7 @@
 5. **以上都没有** → 才提议从头新建，说明原因
 6. **{{OWNER_NAME}} 确认后**：告诉 {{OWNER_NAME}} 运行以下命令导入，**不要自己执行**：
    ```
-   bash import-persona.sh --from-guildex <人才名字>
+   cd ~/openclaw-company-os && bash scripts/import-persona.sh --from-guildex <人才名字>
    ```
 
 **CEO 只负责告知和建议，所有文件操作、命令执行都由 {{OWNER_NAME}} 亲自运行。禁止 CEO 自己执行 bash 命令或下载文件。**

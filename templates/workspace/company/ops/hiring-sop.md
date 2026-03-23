@@ -38,7 +38,7 @@ ls {{TALENT_DIR}}/
 
 或者用命令直接拉取到本地：
 ```bash
-bash import-persona.sh --from-guildex <PersonaName>
+cd ~/openclaw-company-os && bash scripts/import-persona.sh --from-guildex <PersonaName>
 ```
 
 找到合适人选后告知 {{OWNER_NAME}}，等待确认。
