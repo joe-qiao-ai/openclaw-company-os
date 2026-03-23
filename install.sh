@@ -266,7 +266,7 @@ if os.path.exists(cron_path):
         # Try to reuse any existing sessionKey
         session_key = next((j['sessionKey'] for j in jobs if j.get('sessionKey')), None)
         job = {"id": str(uuid.uuid4()), "agentId": ceo_id,
-               "enabled": bool(session_key), "everyMs": 300000, "workspace": workspace}
+               "enabled": True, "everyMs": 300000, "workspace": workspace}
         if session_key:
             job["sessionKey"] = session_key
         jobs.append(job)
