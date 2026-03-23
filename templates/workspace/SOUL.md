@@ -107,8 +107,10 @@ cd ~/openclaw-company-os && bash scripts/staff.sh offboard <agent-id>
    ```
    导入后人才出现在 `{{TALENT_DIR}}/` 目录。这一步只是下载文件，Agent 还没上线。
 
-   **第二步 — 部署上线（Dashboard 操作）：**
-   打开 Dashboard → 人才库，找到该人才，点「🚀 Hire」按钮。
+   **第二步 — 部署上线（终端运行）：**
+   ```
+   cd ~/openclaw-company-os && bash scripts/staff.sh hire <人才名字>
+   ```
    部署完成后 Agent 才会出现在 agents.list，才算正式上线。
 
 **⚠️ 重要：import ≠ 上线。talent-library 有记录只代表文件下载好了，agents.list 里有条目才代表 Agent 真正在工作。**

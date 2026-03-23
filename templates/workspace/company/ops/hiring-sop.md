@@ -55,19 +55,19 @@ cd ~/openclaw-company-os && bash scripts/import-persona.sh --from-guildex <Perso
 ### 部署确认
 
 {{OWNER_NAME}} 确认人选后：
-- 已在本地人才库 → 在 Dashboard 点击「🚀 招聘」
+- 已在本地人才库 → 告诉 {{OWNER_NAME}} 运行：`cd ~/openclaw-company-os && bash scripts/staff.sh hire <名字>`
 - 从 Guildex 拉取 → 运行 `cd ~/openclaw-company-os && bash scripts/import-persona.sh --from-guildex <名字>` 导入后再部署
 - 部署完成 → CEO 写入任务板，分配第一个任务，验证正常工作
 
 ## 停职流程（Suspend）
 
-1. CEO 在 Dashboard 点击「⏸ 停职」
+1. CEO 告诉 {{OWNER_NAME}} 运行：`cd ~/openclaw-company-os && bash scripts/staff.sh suspend <agent-id>`
 2. 系统将该 Agent 的 cron `enabled` 设为 `false`
 3. Workspace 完整保留，可随时返聘
 
 ## 返聘流程（Reinstate）
 
-1. CEO 在 Dashboard 点击「▶ 返聘」
+1. CEO 告诉 {{OWNER_NAME}} 运行：`cd ~/openclaw-company-os && bash scripts/staff.sh reinstate <agent-id>`
 2. 系统将 cron `enabled` 恢复为 `true`
 3. 下次心跳自动激活
 
