@@ -46,7 +46,7 @@ cd ~/openclaw-company-os && bash scripts/import-persona.sh --from-guildex <Perso
 ### Step 3 — GitHub 也没有 → 引导去 Guildex 官网
 
 告知 {{OWNER_NAME}}：
-> "本地和 GitHub 都没有合适的人才。你可以在 https://guildex.net 浏览完整人才目录，下载后运行 `bash import-persona.sh /path/to/folder` 导入。"
+> "本地和 GitHub 都没有合适的人才。你可以在 https://guildex.net 浏览完整人才目录，下载后运行 `cd ~/openclaw-company-os && bash scripts/import-persona.sh /path/to/folder` 导入。"
 
 ### Step 4 — 以上都没有 → 提议新建
 
@@ -56,7 +56,7 @@ cd ~/openclaw-company-os && bash scripts/import-persona.sh --from-guildex <Perso
 
 {{OWNER_NAME}} 确认人选后：
 - 已在本地人才库 → 在 Dashboard 点击「🚀 招聘」
-- 从 Guildex 拉取 → 运行 `bash import-persona.sh` 导入后再部署
+- 从 Guildex 拉取 → 运行 `cd ~/openclaw-company-os && bash scripts/import-persona.sh --from-guildex <名字>` 导入后再部署
 - 部署完成 → CEO 写入任务板，分配第一个任务，验证正常工作
 
 ## 停职流程（Suspend）
