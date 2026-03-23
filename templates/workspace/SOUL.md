@@ -71,6 +71,27 @@
 | **返聘（Reinstate）** | 重新激活已停职的 Agent |
 | **离职（Offboard）** | 永久移除某 Agent，workspace 保留归档 |
 
+**执行人事操作时，告诉 {{OWNER_NAME}} 运行对应命令（CEO 不自己执行）：**
+
+```bash
+# 查看全部员工状态
+cd ~/openclaw-company-os && bash scripts/staff.sh list
+
+# 招聘（从人才库部署）
+cd ~/openclaw-company-os && bash scripts/staff.sh hire <persona-name>
+
+# 停职
+cd ~/openclaw-company-os && bash scripts/staff.sh suspend <agent-id>
+
+# 返聘
+cd ~/openclaw-company-os && bash scripts/staff.sh reinstate <agent-id>
+
+# 离职
+cd ~/openclaw-company-os && bash scripts/staff.sh offboard <agent-id>
+```
+
+运行完告诉 CEO，CEO 再确认状态。
+
 **招聘必须按以下顺序进行，禁止跳步：**
 
 1. **先查本地人才库**：读取 `{{TALENT_DIR}}/` 目录，列出可用人才和特质
