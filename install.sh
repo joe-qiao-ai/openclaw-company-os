@@ -112,6 +112,21 @@ read -p "$(echo -e "${BOLD}Your timezone${NC} [America/Toronto]: ")" TIMEZONE
 read -p "$(echo -e "${BOLD}Primary language${NC} [中文]: ")" LANGUAGE
 [ -z "$LANGUAGE" ] && LANGUAGE="中文"
 
+echo ""
+echo -e "${BOLD}Your contact accounts${NC} — so your CEO recognizes you on any platform."
+echo -e "${YELLOW}Enter your usernames/IDs, one per line. Press Enter twice when done.${NC}"
+echo -e "${YELLOW}e.g. Discord: core119 / Telegram: @carol / Slack: carol.wu${NC}"
+OWNER_ACCOUNTS_LIST=""
+OWNER_ACCOUNTS_MD=""
+while IFS= read -r line; do
+  [ -z "$line" ] && break
+  OWNER_ACCOUNTS_LIST="$OWNER_ACCOUNTS_LIST$line\n"
+  OWNER_ACCOUNTS_MD="$OWNER_ACCOUNTS_MD- $line\n"
+done
+[ -z "$OWNER_ACCOUNTS_MD" ] && OWNER_ACCOUNTS_MD="- (未设置 — 建议补充 Discord/Telegram 账号)\n"
+# Escape for sed
+OWNER_ACCOUNTS=$(printf '%s' "$OWNER_ACCOUNTS_MD" | sed 's/[&/\]/\\&/g')
+
 read -p "$(echo -e "${BOLD}Company knowledge base path${NC} [$HOME/company-kb]: ")" COMPANY_KB
 [ -z "$COMPANY_KB" ] && COMPANY_KB="$HOME/company-kb"
 
@@ -145,6 +160,7 @@ apply_template() {
     -e "s|{{CEO_ID}}|$CEO_ID|g" \
     -e "s|{{CEO_PERSONA}}|$CEO_PERSONA|g" \
     -e "s|{{OWNER_NAME}}|$OWNER_NAME|g" \
+    -e "s|{{OWNER_ACCOUNTS}}|$OWNER_ACCOUNTS|g" \
     -e "s|{{TIMEZONE}}|$TIMEZONE|g" \
     -e "s|{{LANGUAGE}}|$LANGUAGE|g" \
     -e "s|{{COMPANY_KB}}|$COMPANY_KB|g" \
