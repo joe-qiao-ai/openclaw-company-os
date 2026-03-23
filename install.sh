@@ -36,6 +36,49 @@ fi
 echo -e "${GREEN}✓ OpenClaw detected${NC}"
 echo ""
 
+# ── Check for existing installation ──────────
+EXISTING=$(python3 -c "
+import json
+with open('$OPENCLAW/openclaw.json') as f:
+    c = json.load(f)
+mains = [a['id'] for a in c.get('agents',{}).get('list',[]) if a.get('main')]
+print(','.join(mains))
+" 2>/dev/null)
+
+if [ -n "$EXISTING" ]; then
+  echo -e "${YELLOW}⚠ Company OS already installed (CEO: $EXISTING)${NC}"
+  read -p "Reinstall and replace existing setup? [y/N] " REINSTALL
+  if [[ ! "$REINSTALL" =~ ^[Yy] ]]; then
+    echo "Aborted."
+    exit 0
+  fi
+  # Remove existing main agents before reinstalling
+  python3 - <<PYEOF
+import json
+config_path = "$OPENCLAW/openclaw.json"
+with open(config_path) as f:
+    config = json.load(f)
+config['agents']['list'] = [a for a in config.get('agents',{}).get('list',[]) if not a.get('main')]
+with open(config_path, 'w') as f:
+    json.dump(config, f, indent=2, ensure_ascii=False)
+print("  ✓ Removed existing CEO agents")
+PYEOF
+  # Remove existing cron jobs for old main agents
+  CRON_FILE="$OPENCLAW/cron/jobs.json"
+  if [ -f "$CRON_FILE" ]; then
+    IFS=',' read -ra OLD_IDS <<< "$EXISTING"
+    for OLD_ID in "${OLD_IDS[@]}"; do
+      python3 -c "
+import json
+with open('$CRON_FILE') as f: data=json.load(f)
+data['jobs']=[j for j in data.get('jobs',[]) if j.get('agentId')!='$OLD_ID']
+with open('$CRON_FILE','w') as f: json.dump(data,f,indent=2)
+" 2>/dev/null && echo "  ✓ Removed cron job for $OLD_ID"
+    done
+  fi
+  echo ""
+fi
+
 # ── Collect setup info ───────────────────────
 echo -e "${CYAN}${BOLD}Let's set up your AI company.${NC}"
 echo ""
@@ -50,6 +93,8 @@ while [ -z "$CEO_NAME" ]; do
   read -p "CEO name cannot be empty: " CEO_NAME
 done
 
+# Capitalize first letter of each word for display, lowercase for ID
+CEO_NAME=$(echo "$CEO_NAME" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2); print}')
 CEO_ID=$(echo "$CEO_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd 'a-z0-9-')
 
 echo ""
