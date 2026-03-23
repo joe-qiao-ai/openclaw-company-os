@@ -154,8 +154,32 @@ apply_template() {
 # ── 1. Create CEO workspace ───────────────────
 WORKSPACE="$OPENCLAW/workspace-$CEO_ID"
 
+# Helper: patch identity in an existing file (replace name lines only)
+patch_identity() {
+  local file="$1"
+  # Replace any line containing the old CEO name pattern or owner name pattern
+  # We re-apply the full template over identity files only — memory is untouched
+  apply_template "$PLUGIN_DIR/templates/workspace/$(basename "$file")" "$file"
+}
+
 if [ -d "$WORKSPACE" ]; then
-  echo -e "${YELLOW}⚠ Workspace $WORKSPACE already exists — skipping${NC}"
+  echo -e "${CYAN}  Workspace exists — updating identity files, preserving memory...${NC}"
+  # Only overwrite identity files; never touch memory/ or any other files
+  for f in SOUL.md HEARTBEAT.md USER.md; do
+    if [ -f "$PLUGIN_DIR/templates/workspace/$f" ]; then
+      apply_template "$PLUGIN_DIR/templates/workspace/$f" "$WORKSPACE/$f"
+    fi
+  done
+  # Create PERFORMANCE.md only if it doesn't exist
+  [ ! -f "$WORKSPACE/PERFORMANCE.md" ] && \
+    apply_template "$PLUGIN_DIR/templates/workspace/PERFORMANCE.md" "$WORKSPACE/PERFORMANCE.md"
+  # Ensure company/ops dir exists
+  mkdir -p "$WORKSPACE/company/ops"
+  apply_template \
+    "$PLUGIN_DIR/templates/workspace/company/ops/hiring-sop.md" \
+    "$WORKSPACE/company/ops/hiring-sop.md"
+  echo -e "${GREEN}  ✓ Identity updated (SOUL.md, USER.md, HEARTBEAT.md)${NC}"
+  echo -e "${GREEN}  ✓ Memory files untouched${NC}"
 else
   mkdir -p "$WORKSPACE/memory"
   mkdir -p "$WORKSPACE/company/ops"
