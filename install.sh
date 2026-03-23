@@ -307,58 +307,8 @@ else
 fi
 
 # ── 6. Bind CEO to configured channels ───────
-python3 - <<PYEOF
-import json
-
-config_path = "$OPENCLAW/openclaw.json"
-with open(config_path, 'r') as f:
-    config = json.load(f)
-
-channels = config.get('channels', {})
-bindings = config.get('bindings', [])
-added = []
-
-# Bind Telegram if configured
-telegram_accounts = channels.get('telegram', {}).get('accounts', {})
-for account_id in telegram_accounts:
-    already = any(
-        b.get('agentId') == '$CEO_ID' and
-        b.get('channelType') == 'telegram' and
-        b.get('accountId') == account_id
-        for b in bindings
-    )
-    if not already:
-        bindings.append({
-            "channelType": "telegram",
-            "accountId": account_id,
-            "agentId": "$CEO_ID"
-        })
-        added.append(f"telegram:{account_id}")
-
-# Bind Discord if configured
-discord_cfg = channels.get('discord', {})
-if discord_cfg.get('enabled') or discord_cfg.get('token'):
-    already = any(
-        b.get('agentId') == '$CEO_ID' and b.get('channelType') == 'discord'
-        for b in bindings
-    )
-    if not already:
-        bindings.append({
-            "channelType": "discord",
-            "accountId": "default",
-            "agentId": "$CEO_ID"
-        })
-        added.append("discord:default")
-
-config['bindings'] = bindings
-with open(config_path, 'w') as f:
-    json.dump(config, f, indent=2, ensure_ascii=False)
-
-if added:
-    print(f"  ✓ CEO bound to channels: {', '.join(added)}")
-else:
-    print("  ✓ Channel bindings already up to date")
-PYEOF
+# NOTE: binding format is version-specific — configured manually via openclaw setup
+echo -e "${YELLOW}  ⚠ Channel binding skipped — run 'openclaw setup' to bind ${CEO_NAME} to Discord/Telegram${NC}"
 
 # ── 7. Enable agentToAgent messaging ─────────
 python3 - <<PYEOF
