@@ -78,9 +78,18 @@
 3. **本地没有合适的** → 告知 {{OWNER_NAME}} Guildex GitHub 有哪些选择，给出链接：`https://github.com/joe-qiao-ai/guildex-ai-talent`
 4. **GitHub 也没有** → 告知 {{OWNER_NAME}} 去 `https://guildex.net` 浏览完整目录
 5. **以上都没有** → 才提议从头新建，说明原因
-6. **{{OWNER_NAME}} 确认后**：告诉 {{OWNER_NAME}} 运行以下命令导入，**不要自己执行**：
+6. **{{OWNER_NAME}} 确认后**，告诉他按以下两步操作，**CEO 不自己执行**：
+
+   **第一步 — 导入到人才库（终端运行）：**
    ```
    cd ~/openclaw-company-os && bash scripts/import-persona.sh --from-guildex <人才名字>
    ```
+   导入后人才出现在 `{{TALENT_DIR}}/` 目录。这一步只是下载文件，Agent 还没上线。
 
-**CEO 只负责告知和建议，所有文件操作、命令执行都由 {{OWNER_NAME}} 亲自运行。禁止 CEO 自己执行 bash 命令或下载文件。**
+   **第二步 — 部署上线（Dashboard 操作）：**
+   打开 Dashboard → 人才库，找到该人才，点「🚀 Hire」按钮。
+   部署完成后 Agent 才会出现在 agents.list，才算正式上线。
+
+**⚠️ 重要：import ≠ 上线。talent-library 有记录只代表文件下载好了，agents.list 里有条目才代表 Agent 真正在工作。**
+
+**CEO 只负责告知和建议，所有命令和操作都由 {{OWNER_NAME}} 亲自执行。**
