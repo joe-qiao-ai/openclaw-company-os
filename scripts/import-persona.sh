@@ -147,14 +147,21 @@ PYEOF
   # Download each standard file from the correct path
   SUCCESS=0
   for FILE in SOUL.md SKILLS.md EXAMPLES.md TESTS.md README.md; do
-    URL="$GUILDEX_RAW/$CATEGORY/$PERSONA_NAME/$FILE"
-    if python3 -c "
-import urllib.request
+    if python3 - <<PYEOF 2>/dev/null | grep -q "ok"
+import urllib.request, urllib.parse
+category = "$CATEGORY"
+persona  = "$PERSONA_NAME"
+fname    = "$FILE"
+dest     = "$PERSONA_DIR/$FILE"
+encoded  = urllib.parse.quote(persona)
+url      = f"$GUILDEX_RAW/{urllib.parse.quote(category)}/{encoded}/{fname}"
 try:
-    urllib.request.urlretrieve('$URL', '$PERSONA_DIR/$FILE')
-    print('ok')
-except: print('skip')
-" 2>/dev/null | grep -q "ok"; then
+    urllib.request.urlretrieve(url, dest)
+    print("ok")
+except:
+    print("skip")
+PYEOF
+    then
       echo -e "  ${GREEN}✓${NC} $FILE"
       SUCCESS=$((SUCCESS + 1))
     fi
