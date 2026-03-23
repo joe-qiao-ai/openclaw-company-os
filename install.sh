@@ -172,6 +172,7 @@ write_user_md() {
   local dst="$1"
   mkdir -p "$(dirname "$dst")"
   python3 - <<PYEOF
+# -*- coding: utf-8 -*-
 import os
 
 accounts_lines = [$(printf '"%s",' "${OWNER_ACCOUNTS_LINES[@]}" | sed 's/,$//')]
