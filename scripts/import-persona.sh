@@ -42,31 +42,49 @@ fi
 # ── Handle --search ───────────────────────────
 if [ "$1" = "--search" ]; then
   if [ -z "$2" ]; then
-    echo -e "${RED}Usage: bash import-persona.sh --search <keyword>${NC}"
+    echo -e "${RED}Usage: bash scripts/import-persona.sh --search <keyword>${NC}"
     exit 1
   fi
   KEYWORD="$2"
   echo -e "${CYAN}Searching Guildex for \"$KEYWORD\"...${NC}"
   echo ""
-  # List all personas from GitHub API and filter
   python3 - <<PYEOF
-import urllib.request, json, sys
+import urllib.request, json
 
 keyword = "$KEYWORD".lower()
-try:
-    url = "https://api.github.com/repos/joe-qiao-ai/guildex-ai-talent/contents"
-    req = urllib.request.Request(url, headers={"User-Agent": "company-os-importer"})
+base_url = "https://api.github.com/repos/joe-qiao-ai/guildex-ai-talent/contents"
+headers = {"User-Agent": "company-os-importer"}
+
+def fetch(url):
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=10) as r:
-        items = json.loads(r.read())
-    matches = [i["name"] for i in items if i["type"] == "dir" and keyword in i["name"].lower()]
+        return json.loads(r.read())
+
+try:
+    # Get root categories
+    root = fetch(base_url)
+    categories = [i for i in root if i["type"] == "dir"]
+    matches = []
+
+    for cat in categories:
+        try:
+            personas = fetch(cat["url"])
+            for p in personas:
+                if p["type"] == "dir" and keyword in p["name"].lower():
+                    matches.append((cat["name"], p["name"]))
+        except:
+            pass
+
     if matches:
-        print(f"Found {len(matches)} match(es):")
-        for m in matches:
-            print(f"  - {m}")
-        print(f"\nTo import: bash import-persona.sh --from-guildex <name>")
+        print(f"Found {len(matches)} match(es):\n")
+        for cat, name in matches:
+            print(f"  [{cat}]  {name}")
+        print(f"\nTo import:")
+        for _, name in matches[:3]:
+            print(f"  bash scripts/import-persona.sh --from-guildex \"{name}\"")
     else:
-        print(f"No matches for '{keyword}' in Guildex GitHub.")
-        print(f"Browse the full library: $GUILDEX_REPO")
+        print(f"No matches for '{keyword}'.")
+        print(f"Browse: $GUILDEX_REPO")
 except Exception as e:
     print(f"Could not reach GitHub: {e}")
     print(f"Browse manually: $GUILDEX_REPO")
@@ -77,7 +95,7 @@ fi
 # ── Handle --from-guildex ─────────────────────
 if [ "$1" = "--from-guildex" ]; then
   if [ -z "$2" ]; then
-    echo -e "${RED}Usage: bash import-persona.sh --from-guildex <PersonaName>${NC}"
+    echo -e "${RED}Usage: bash scripts/import-persona.sh --from-guildex <PersonaName>${NC}"
     exit 1
   fi
   PERSONA_NAME="$2"
@@ -87,10 +105,49 @@ if [ "$1" = "--from-guildex" ]; then
   PERSONA_DIR="$TMP_DIR/$PERSONA_NAME"
   mkdir -p "$PERSONA_DIR"
 
-  # Download each standard file
+  # Auto-find which category the persona lives in
+  CATEGORY=$(python3 - <<PYEOF
+import urllib.request, json
+
+headers = {"User-Agent": "company-os-importer"}
+name = "$PERSONA_NAME".lower()
+
+def fetch(url):
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req, timeout=10) as r:
+        return json.loads(r.read())
+
+try:
+    root = fetch("https://api.github.com/repos/joe-qiao-ai/guildex-ai-talent/contents")
+    for cat in root:
+        if cat["type"] != "dir": continue
+        try:
+            personas = fetch(cat["url"])
+            for p in personas:
+                if p["type"] == "dir" and p["name"].lower() == name:
+                    print(cat["name"])
+                    exit()
+        except:
+            pass
+except:
+    pass
+PYEOF
+)
+
+  if [ -z "$CATEGORY" ]; then
+    echo -e "${RED}✗ Persona '$PERSONA_NAME' not found in Guildex.${NC}"
+    echo -e "  Try: bash scripts/import-persona.sh --search <keyword>"
+    echo -e "  Browse: ${CYAN}$GUILDEX_REPO${NC}"
+    rm -rf "$TMP_DIR"
+    exit 1
+  fi
+
+  echo -e "  ${CYAN}Found in category: $CATEGORY${NC}"
+
+  # Download each standard file from the correct path
   SUCCESS=0
   for FILE in SOUL.md SKILLS.md EXAMPLES.md TESTS.md README.md; do
-    URL="$GUILDEX_RAW/$PERSONA_NAME/$FILE"
+    URL="$GUILDEX_RAW/$CATEGORY/$PERSONA_NAME/$FILE"
     if python3 -c "
 import urllib.request
 try:
@@ -104,8 +161,7 @@ except: print('skip')
   done
 
   if [ $SUCCESS -eq 0 ]; then
-    echo -e "${RED}✗ Persona '$PERSONA_NAME' not found in Guildex.${NC}"
-    echo -e "  Browse available personas: ${CYAN}$GUILDEX_REPO${NC}"
+    echo -e "${RED}✗ Could not download files for '$PERSONA_NAME'.${NC}"
     rm -rf "$TMP_DIR"
     exit 1
   fi
