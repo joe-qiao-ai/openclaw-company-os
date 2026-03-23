@@ -38,11 +38,14 @@ echo ""
 
 # ── Check for existing installation ──────────
 EXISTING=$(python3 -c "
-import json
+import json, os
 with open('$OPENCLAW/openclaw.json') as f:
     c = json.load(f)
-mains = [a['id'] for a in c.get('agents',{}).get('list',[]) if a.get('main')]
-print(','.join(mains))
+# Detect previously installed CEO by checking for workspace-* dirs we created
+plugin_agents = [a['id'] for a in c.get('agents',{}).get('list',[])
+                 if a.get('workspace','').startswith('$OPENCLAW/workspace-')
+                 and a.get('id') not in ('main',)]
+print(','.join(plugin_agents))
 " 2>/dev/null)
 
 if [ -n "$EXISTING" ]; then
@@ -248,8 +251,7 @@ if '$CEO_ID' in existing_ids:
 else:
     agents.append({
         "id": "$CEO_ID",
-        "workspace": "$WORKSPACE",
-        "main": True
+        "workspace": "$WORKSPACE"
     })
     config['agents']['list'] = agents
     with open(config_path, 'w') as f:

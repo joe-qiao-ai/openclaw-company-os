@@ -21,8 +21,10 @@ import json
 with open('$OPENCLAW/openclaw.json') as f:
     c = json.load(f)
 agents = c.get('agents', {}).get('list', [])
-mains = [a['id'] for a in agents if a.get('main')]
-print(mains[0] if mains else '')
+plugin_agents = [a['id'] for a in agents
+                 if a.get('workspace','').startswith('$OPENCLAW/workspace-')
+                 and a.get('id') not in ('main',)]
+print(plugin_agents[0] if plugin_agents else '')
 " 2>/dev/null)
 
 if [ -z "$CEO_ID" ]; then
