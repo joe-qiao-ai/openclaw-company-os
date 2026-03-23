@@ -21,12 +21,16 @@
 
 ## 招聘流程（Hire）
 
-1. CEO 识别人才需求，向 {{OWNER_NAME}} 提交招聘建议
-2. {{OWNER_NAME}} 从人才库（Guild）选定人才包并下载
-3. 运行导入脚本：`bash import-persona.sh /path/to/persona-folder`
-4. 在 Dashboard 人才库中找到该人才，点击「🚀 招聘」
-5. 系统自动：创建 workspace、加入 agents.list、创建 cron 心跳
-6. CEO 通过任务板分配第一个任务，验证 Agent 正常工作
+**第一步永远是查人才库，禁止跳过。**
+
+1. **查人才库**：`ls {{TALENT_DIR}}/` 列出所有可用人才，读取每个人的 SOUL.md 了解特质
+2. **筛选匹配**：找出最符合需求的 2-3 个候选人
+3. **推荐给 {{OWNER_NAME}}**：展示候选人名字 + 一句话特质描述，让 {{OWNER_NAME}} 选择
+4. **人才库没有合适的**：才提议从 Guild 下载或新建，说明为什么现有人才不合适
+5. **{{OWNER_NAME}} 确认选定人选后**：
+   - 若已在人才库：在 Dashboard 点击「🚀 招聘」，或通知 {{OWNER_NAME}} 去操作
+   - 若需从 Guild 下载：提供下载链接/指引，{{OWNER_NAME}} 下载后运行 `bash import-persona.sh`
+6. **部署完成后**：CEO 通过任务板分配第一个任务，验证 Agent 正常工作
 
 ## 停职流程（Suspend）
 
