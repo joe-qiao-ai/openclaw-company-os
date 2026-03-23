@@ -87,12 +87,29 @@ PERSONA_NAME = "$TARGET"
 agent_id = PERSONA_NAME.lower().replace(" ", "-")
 workspace = f"{OPENCLAW}/workspace-{agent_id}"
 
-# Check talent library
+# Check talent library — try exact match first, then fuzzy
 src = f"{TALENT_DIR}/{PERSONA_NAME}"
 if not os.path.isdir(src):
-    print(f"✗ '{PERSONA_NAME}' not found in talent library ({TALENT_DIR})")
-    print(f"  Run: bash scripts/import-persona.sh --from-guildex {PERSONA_NAME}")
-    exit(1)
+    # Try case-insensitive / hyphen-space-insensitive match
+    needle = PERSONA_NAME.lower().replace("-", " ").replace("_", " ")
+    matched = None
+    try:
+        for entry in os.listdir(TALENT_DIR):
+            candidate = entry.lower().replace("-", " ").replace("_", " ")
+            if candidate == needle:
+                matched = entry
+                break
+    except:
+        pass
+    if matched:
+        src = f"{TALENT_DIR}/{matched}"
+        PERSONA_NAME = matched
+        agent_id = matched.lower().replace(" ", "-")
+        workspace = f"{OPENCLAW}/workspace-{agent_id}"
+    else:
+        print(f"✗ '{PERSONA_NAME}' not found in talent library ({TALENT_DIR})")
+        print(f"  Run: bash scripts/import-persona.sh --from-guildex \"{PERSONA_NAME}\"")
+        exit(1)
 
 # Read config
 with open(f"{OPENCLAW}/openclaw.json") as f:

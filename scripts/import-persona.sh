@@ -252,4 +252,5 @@ fi
 [ -n "$TMP_DIR" ] && rm -rf "$TMP_DIR"
 
 echo ""
-echo -e "${BOLD}Done. Open Dashboard → 人才库 to set category and deploy.${NC}"
+echo -e "${BOLD}Done.${NC} To deploy, run:"
+echo -e "  ${CYAN}cd ~/openclaw-company-os && bash scripts/staff.sh hire \"$PERSONA_NAME\"${NC}"
