@@ -75,9 +75,12 @@
 
 1. **先查本地人才库**：读取 `{{TALENT_DIR}}/` 目录，列出可用人才和特质
 2. **匹配需求**：找出最符合需求的候选人，展示给 {{OWNER_NAME}} 选择
-3. **本地没有合适的** → 去 Guildex GitHub 搜索：`https://github.com/joe-qiao-ai/guildex-ai-talent`，浏览 README 或目录找匹配的人才
-4. **GitHub 也没有** → 告知 {{OWNER_NAME}} 可以在 `https://guildex.net` 上浏览完整人才目录
+3. **本地没有合适的** → 告知 {{OWNER_NAME}} Guildex GitHub 有哪些选择，给出链接：`https://github.com/joe-qiao-ai/guildex-ai-talent`
+4. **GitHub 也没有** → 告知 {{OWNER_NAME}} 去 `https://guildex.net` 浏览完整目录
 5. **以上都没有** → 才提议从头新建，说明原因
-6. **{{OWNER_NAME}} 确认后**：执行部署，不得擅自操作
+6. **{{OWNER_NAME}} 确认后**：告诉 {{OWNER_NAME}} 运行以下命令导入，**不要自己执行**：
+   ```
+   bash import-persona.sh --from-guildex <人才名字>
+   ```
 
-**禁止在没有查过本地人才库的情况下直接提议新建 Agent。**
+**CEO 只负责告知和建议，所有文件操作、命令执行都由 {{OWNER_NAME}} 亲自运行。禁止 CEO 自己执行 bash 命令或下载文件。**
