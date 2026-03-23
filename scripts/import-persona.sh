@@ -1,15 +1,20 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────
-#  Company OS — Import Persona from Guild
-#  Usage: bash import-persona.sh /path/to/persona-folder
-#         bash import-persona.sh persona.zip
+#  Company OS — Import Persona
+#  Usage:
+#    bash import-persona.sh /path/to/persona-folder
+#    bash import-persona.sh persona.zip
+#    bash import-persona.sh --from-guildex PersonaName
+#    bash import-persona.sh --search keyword
 # ─────────────────────────────────────────────
 set -e
 
 OPENCLAW="$HOME/.openclaw"
-GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; BOLD='\033[1m'; NC='\033[0m'
+GUILDEX_REPO="https://github.com/joe-qiao-ai/guildex-ai-talent"
+GUILDEX_RAW="https://raw.githubusercontent.com/joe-qiao-ai/guildex-ai-talent/main"
+GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; BOLD='\033[1m'; CYAN='\033[0;36m'; NC='\033[0m'
 
-# ── Detect talent library path from openclaw config ──
+# ── Detect talent library path ──
 TALENT_DIR=$(python3 -c "
 import json, os
 try:
@@ -22,11 +27,93 @@ except:
 
 # ── Arg check ────────────────────────────────
 if [ -z "$1" ]; then
-  echo -e "${RED}Usage: bash import-persona.sh /path/to/persona-folder-or-zip${NC}"
+  echo -e "${BOLD}Guildex Persona Importer${NC}"
+  echo ""
+  echo "Usage:"
+  echo "  bash import-persona.sh /path/to/folder     Import from local folder"
+  echo "  bash import-persona.sh persona.zip         Import from zip"
+  echo "  bash import-persona.sh --from-guildex Name  Pull from Guildex GitHub"
+  echo "  bash import-persona.sh --search keyword     Search Guildex GitHub"
+  echo ""
+  echo "Browse all personas: $GUILDEX_REPO"
   exit 1
 fi
 
-SOURCE="$1"
+# ── Handle --search ───────────────────────────
+if [ "$1" = "--search" ]; then
+  if [ -z "$2" ]; then
+    echo -e "${RED}Usage: bash import-persona.sh --search <keyword>${NC}"
+    exit 1
+  fi
+  KEYWORD="$2"
+  echo -e "${CYAN}Searching Guildex for \"$KEYWORD\"...${NC}"
+  echo ""
+  # List all personas from GitHub API and filter
+  python3 - <<PYEOF
+import urllib.request, json, sys
+
+keyword = "$KEYWORD".lower()
+try:
+    url = "https://api.github.com/repos/joe-qiao-ai/guildex-ai-talent/contents"
+    req = urllib.request.Request(url, headers={"User-Agent": "company-os-importer"})
+    with urllib.request.urlopen(req, timeout=10) as r:
+        items = json.loads(r.read())
+    matches = [i["name"] for i in items if i["type"] == "dir" and keyword in i["name"].lower()]
+    if matches:
+        print(f"Found {len(matches)} match(es):")
+        for m in matches:
+            print(f"  - {m}")
+        print(f"\nTo import: bash import-persona.sh --from-guildex <name>")
+    else:
+        print(f"No matches for '{keyword}' in Guildex GitHub.")
+        print(f"Browse the full library: $GUILDEX_REPO")
+except Exception as e:
+    print(f"Could not reach GitHub: {e}")
+    print(f"Browse manually: $GUILDEX_REPO")
+PYEOF
+  exit 0
+fi
+
+# ── Handle --from-guildex ─────────────────────
+if [ "$1" = "--from-guildex" ]; then
+  if [ -z "$2" ]; then
+    echo -e "${RED}Usage: bash import-persona.sh --from-guildex <PersonaName>${NC}"
+    exit 1
+  fi
+  PERSONA_NAME="$2"
+  echo -e "${CYAN}Pulling ${BOLD}$PERSONA_NAME${NC}${CYAN} from Guildex...${NC}"
+
+  TMP_DIR=$(mktemp -d)
+  PERSONA_DIR="$TMP_DIR/$PERSONA_NAME"
+  mkdir -p "$PERSONA_DIR"
+
+  # Download each standard file
+  SUCCESS=0
+  for FILE in SOUL.md SKILLS.md EXAMPLES.md TESTS.md README.md; do
+    URL="$GUILDEX_RAW/$PERSONA_NAME/$FILE"
+    if python3 -c "
+import urllib.request
+try:
+    urllib.request.urlretrieve('$URL', '$PERSONA_DIR/$FILE')
+    print('ok')
+except: print('skip')
+" 2>/dev/null | grep -q "ok"; then
+      echo -e "  ${GREEN}✓${NC} $FILE"
+      SUCCESS=$((SUCCESS + 1))
+    fi
+  done
+
+  if [ $SUCCESS -eq 0 ]; then
+    echo -e "${RED}✗ Persona '$PERSONA_NAME' not found in Guildex.${NC}"
+    echo -e "  Browse available personas: ${CYAN}$GUILDEX_REPO${NC}"
+    rm -rf "$TMP_DIR"
+    exit 1
+  fi
+
+  SOURCE="$PERSONA_DIR"
+fi
+
+SOURCE="${SOURCE:-$1}"
 
 # ── Unzip if needed ───────────────────────────
 if [[ "$SOURCE" == *.zip ]]; then

@@ -1,6 +1,6 @@
 # Company OS for OpenClaw
 
-Turn any OpenClaw install into a fully operational AI company — with a customizable CEO agent, a structured hiring and offboarding system, a shared task board, and a talent library.
+Turn any OpenClaw install into a fully operational AI company — with a customizable CEO agent, a structured hiring and offboarding system, a shared task board, and a talent library backed by [Guildex](https://guildex.net).
 
 ---
 
@@ -9,7 +9,7 @@ Turn any OpenClaw install into a fully operational AI company — with a customi
 After running the installer, your OpenClaw becomes a company:
 
 - **A CEO agent** with your chosen name and personality, who understands their role: delegate, don't execute
-- **A hiring system** — the CEO checks your talent library first, recommends candidates, and only deploys after you confirm
+- **A hiring system** — the CEO checks your local talent library first, then falls back to [Guildex GitHub](https://github.com/joe-qiao-ai/guildex-ai-talent), then [guildex.net](https://guildex.net) — and only proposes building from scratch if nothing exists anywhere
 - **A task board** at `~/company-kb/taskboard.md` — how work moves between you and your agents
 - **A performance system** — each agent has a `PERFORMANCE.md` that tracks recognition and scores across sessions
 - **A hiring SOP** — documented rules for hire, suspend, reinstate, and offboard
@@ -51,26 +51,41 @@ Setup takes under a minute. Restart OpenClaw when prompted.
 
 ## Hiring Workflow
 
-The CEO follows a strict order — no shortcuts:
+The CEO follows a strict three-tier lookup — no shortcuts:
 
-1. **Check the talent library first** — reads `~/talent-library/` and lists available personas
-2. **Match to your request** — finds the best candidates and presents them to you
-3. **You choose** — CEO deploys only after you confirm
-4. **If nothing fits** — CEO tells you why and suggests downloading from [Guild](https://guild.ai) or building from scratch
+```
+1. Local talent library  ~/talent-library/
+         ↓ not found
+2. Guildex GitHub        github.com/joe-qiao-ai/guildex-ai-talent
+         ↓ not found
+3. Guildex website       guildex.net
+         ↓ nothing suitable anywhere
+4. Propose building from scratch
+```
 
-The CEO will never propose creating a new agent without checking the library first.
+The CEO will never skip to "build from scratch" without exhausting the library first.
 
 ---
 
-## Importing Personas from Guild
+## Importing Personas
 
-Download a persona package from [Guild](https://guild.ai), then:
-
+**From a local folder or zip:**
 ```bash
 bash scripts/import-persona.sh /path/to/persona-folder
+bash scripts/import-persona.sh persona.zip
 ```
 
-The persona will appear in your talent library, ready to be hired by your CEO.
+**Directly from Guildex GitHub:**
+```bash
+bash scripts/import-persona.sh --from-guildex Nova
+```
+
+**Search Guildex GitHub by keyword:**
+```bash
+bash scripts/import-persona.sh --search frontend
+```
+
+Browse the full Guildex talent library: **https://github.com/joe-qiao-ai/guildex-ai-talent**
 
 ---
 
@@ -85,7 +100,7 @@ bash install.sh
 
 - If a previous Company OS install is found, you'll be asked whether to replace it
 - **Memory files are always preserved** — only identity files (SOUL.md, USER.md) are updated
-- Old workspaces are cleaned up automatically
+- Old agent workspaces are cleaned up automatically
 
 ---
 
@@ -104,22 +119,26 @@ Removes the CEO agent, cron job, and bindings. Your company KB and workspace fil
 ```
 ~/.openclaw/
 └── workspace-{ceo-id}/
-    ├── SOUL.md          # CEO identity and rules
-    ├── HEARTBEAT.md     # What the CEO does every cycle
-    ├── USER.md          # Who you are, your contact accounts
-    ├── PERFORMANCE.md   # Recognition and score history
+    ├── SOUL.md              # CEO identity and rules
+    ├── HEARTBEAT.md         # What the CEO does every cycle
+    ├── USER.md              # Who you are, your contact accounts
+    ├── PERFORMANCE.md       # Recognition and score history
     └── company/ops/
-        └── hiring-sop.md
+        └── hiring-sop.md    # Full hire/suspend/offboard procedures
 
 ~/company-kb/
-    ├── taskboard.md     # Active tasks across all agents
-    └── leaderboard.md   # Monthly agent performance ranking
+    ├── taskboard.md         # Active tasks across all agents
+    └── leaderboard.md       # Monthly agent performance ranking
+
+~/talent-library/            # Your local persona collection
 ```
 
 ---
 
-## Part of the Guild Ecosystem
+## Guildex
 
-Company OS is the foundation layer. [Guild](https://guild.ai) is where you find, browse, and download the people.
+[Guildex](https://guildex.net) is the AI talent network built for OpenClaw.
 
-Install Company OS → browse Guild → hire who you need.
+Browse, download, and deploy personas — or share your own.
+
+**GitHub talent library:** https://github.com/joe-qiao-ai/guildex-ai-talent
