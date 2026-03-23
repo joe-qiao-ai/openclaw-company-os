@@ -1,0 +1,22 @@
+{
+  "id": "company-os",
+  "name": "Company OS",
+  "version": "1.0.0",
+  "description": "Turn OpenClaw into a full AI company — CEO, hiring system, task board, and talent library.",
+  "author": "OpenClaw",
+  "requires": {
+    "openclaw": ">=2026.3.0"
+  },
+  "installs": {
+    "ceoAgent": true,
+    "companyKb": true,
+    "hiringSop": true,
+    "taskBoard": true,
+    "talentLibrary": true
+  },
+  "scripts": {
+    "install": "install.sh",
+    "uninstall": "uninstall.sh",
+    "import-persona": "scripts/import-persona.sh"
+  }
+}
