@@ -145,7 +145,7 @@ if not any(j["agentId"] == agent_id for j in cron.get("jobs", [])):
         "id": str(uuid.uuid4()),
         "agentId": agent_id,
         "workspace": workspace,
-        "everyMs": 900000,
+        "everyMs": 300000,
         "enabled": True,
         "sessionKey": session_key
     })
